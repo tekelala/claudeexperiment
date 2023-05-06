@@ -1,56 +1,56 @@
-import requests
 import streamlit as st
-import SessionState
+import requests
+import json
 
-# Define the API endpoint
-API_ENDPOINT = "https://api.anthropic.com/v1/complete"
+st.title("Chat with Claude")
 
-# Define the headers for the API request
-headers = {
-    "x-api-key": st.secrets["API_KEY"],
-    "content-type": "application/json"
-}
+# Define initial prompts
+prompts = []
 
-def get_response(conversation, user_input):
-    # Add the user input to the conversation
-    conversation.append(f"\n\nHuman: {user_input}\n\nAssistant: ")
+# Fetch user input
+user_input = st.text_input("You: ")
 
-    # Define the data for the API request
-    data = {
-        "prompt": "".join(conversation), 
-        "model": "claude-v1", 
-        "max_tokens_to_sample": 300, 
-        "stop_sequences": ["\n\nHuman:"]
-    }
+# If there's user input, append it to the prompts
+if user_input:
+    prompts.append({
+        "role": "Human",
+        "content": user_input
+    })
 
-    # Send the API request
-    response = requests.post(API_ENDPOINT, headers=headers, json=data)
+# When the user clicks "Send", make a request to Claude API
+if st.button("Send"):
+    if prompts:
+        api_url = "https://api.anthropic.com/v1/complete"
+        headers = {
+            "Content-Type": "application/json",
+            "X-API-Key": "API_KEY"
+        }
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        # Extract the completion from the response
-        completion = response.json()['completion']
-        # Add the response to the conversation
-        conversation.append(completion)
-        return completion
-    else:
-        st.error("We encountered an error")
-        return None
+        # Prepare the prompts for Claude
+        conversation = "\n\n".join([f'{item["role"]}: {item["content"]}' for item in prompts]) + "\n\nAssistant:"
 
-def app():
-    st.title("Ask Claude")
+        # Define the body of the request
+        body = {
+            "prompt": conversation,
+            "model": "claude-v1",
+            "max_tokens_to_sample": 100,
+            "stop_sequences": ["\n\nHuman:"]
+        }
 
-    # Initialize session state for the conversation
-    state = SessionState.get(conversation=[])
+        # Make a POST request to the Claude API
+        response = requests.post(api_url, headers=headers, data=json.dumps(body))
 
-    user_input = st.text_input("Enter your question:")
-    if st.button("Ask"):
-        with st.spinner("Please wait..."):
-            response = get_response(state.conversation, user_input)
-            if response:
-                st.text(response)
-            else:
-                st.error("Failed to get a response.")
+        # If the request is successful, display the response
+        if response.status_code == 200:
+            result = response.json()
+            st.text("Claude: " + result['completion'])
 
-if __name__ == "__main__":
-    app()
+            # Append Claude's response to the prompts
+            prompts.append({
+                "role": "Assistant",
+                "content": result['completion']
+            })
+        else:
+            st.error("There was an error making the request.")
+
+st.session_state.prompts = prompts
