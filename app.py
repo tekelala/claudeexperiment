@@ -3,7 +3,7 @@ import requests
 import json
 
 # Define Claude API endpoint
-API_ENDPOINT = "https://api.anthropic.com/v1/complete" 
+API_ENDPOINT = "https://api.anthropic.com/v1.3/complete" 
 
 # Define function to query API 
 def query(payload): 
@@ -32,7 +32,7 @@ st.title("Chatbot")
 st.write("This is a basic chatbot using the Claude API.")
 
 # Prompt user for query and call API
-query_input = st.text_input("You: ", "How can I help you today?")  
+query_input = st.text_input("You: ", "How can I help you today?", key = "query_input")  
 
 if query_input:
   # Format the query for the Claude API
@@ -52,7 +52,7 @@ if query_input:
 
 # Continuously prompt for new queries  
 while True:    
-  query_input = st.text_input("You: ", "")
+  query_input = st.text_input("You: ", "", key = "query_input2") 
   if query_input:
     # Format the query for the Claude API
     prompt = f"\n\nHuman: {query_input}\n\nAssistant:"
