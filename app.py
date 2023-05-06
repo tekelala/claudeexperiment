@@ -1,12 +1,12 @@
 import streamlit as st
 import requests
-import json
+import time
 
-# Define the Claude API endpoint 
-API_ENDPOINT = "https://api-inference.huggingface.co/models/claude-cpc:latest"
+# Define Claude API endpoint
+API_ENDPOINT = "https://api-inference.huggingface.co/models/claude-cpc:latest" 
 
-# Define a function to query Claude
-def query(payload):
+# Define function to query API 
+def query(payload): 
   response = requests.post(API_ENDPOINT, headers={"Content-Type": "application/json"}, data=payload)
   
   # Handle response and errors
@@ -23,25 +23,33 @@ def query(payload):
     
   return response
 
-# Create page title and intro
+# Create page content
 st.title("Chatbot")
 st.write("This is a basic chatbot using the Claude API.")
 
-# Prompt user for query and call API  
-query_input = st.text_input("You: ", "How can I help you today?") 
-response = query({ "inputs": query_input })
+# Prompt user for query and call API
+query_input = st.text_input("You: ", "How can I help you today?")  
 
-# Display response from API 
+# Add delay between requests to API 
+time.sleep(2)  
+
+# Call API and display response
+response = query({ "inputs": query_input })
 try: 
   st.write("Claude: ", response["responses"][0]["text"]) 
 except:
   st.error("Unable to display response from API")
   st.stop()
   
-# Continuously prompt for queries 
+# Continuously prompt for new queries  
 while True:    
   query_input = st.text_input("You: ", "")
   if query_input:
+    
+    # Add delay between requests to API 
+    time.sleep(2)  
+    
+    # Call API and display response
     response = query({ "inputs": query_input })
     try: 
       st.write("Claude: ", response["responses"][0]["text"])
