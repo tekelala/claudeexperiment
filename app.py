@@ -1,13 +1,17 @@
 import streamlit as st
 import requests
-import time
+import json
 
 # Define Claude API endpoint
-API_ENDPOINT = "https://api-inference.huggingface.co/models/claude-cpc:latest" 
+API_ENDPOINT = "https://api.anthropic.com/v1/complete" 
 
 # Define function to query API 
 def query(payload): 
-  response = requests.post(API_ENDPOINT, headers={"Content-Type": "application/json"}, data=payload)
+  headers = {
+    "Content-Type": "application/json",
+    "X-API-Key": st.secrets["API_KEY"]
+  }
+  response = requests.post(API_ENDPOINT, headers=headers, data=json.dumps(payload))
   
   # Handle response and errors
   try: 
@@ -16,8 +20,8 @@ def query(payload):
     st.error("Invalid JSON response from API")
     st.stop()
     
-  # Check if "responses" key exists
-  if "responses" not in response:
+  # Check if "completion" key exists
+  if "completion" not in response:
     st.error("Invalid JSON response from API")
     st.stop()
     
@@ -30,29 +34,37 @@ st.write("This is a basic chatbot using the Claude API.")
 # Prompt user for query and call API
 query_input = st.text_input("You: ", "How can I help you today?")  
 
-# Add delay between requests to API 
-time.sleep(2)  
+if query_input:
+  # Format the query for the Claude API
+  prompt = f"\n\nHuman: {query_input}\n\nAssistant:"
+  # Call API and display response
+  response = query({
+    "prompt": prompt,
+    "model": "claude-v1",
+    "max_tokens_to_sample": 100,
+    "stop_sequences": ["\n\nHuman:"]
+  })
+  try: 
+    st.write("Claude: ", response["completion"]) 
+  except:
+    st.error("Unable to display response from API")
+    st.stop()
 
-# Call API and display response
-response = query({ "inputs": query_input })
-try: 
-  st.write("Claude: ", response["responses"][0]["text"]) 
-except:
-  st.error("Unable to display response from API")
-  st.stop()
-  
 # Continuously prompt for new queries  
 while True:    
   query_input = st.text_input("You: ", "")
   if query_input:
-    
-    # Add delay between requests to API 
-    time.sleep(2)  
-    
+    # Format the query for the Claude API
+    prompt = f"\n\nHuman: {query_input}\n\nAssistant:"
     # Call API and display response
-    response = query({ "inputs": query_input })
+    response = query({
+      "prompt": prompt,
+      "model": "claude-v1",
+      "max_tokens_to_sample": 100,
+      "stop_sequences": ["\n\nHuman:"]
+    })
     try: 
-      st.write("Claude: ", response["responses"][0]["text"])
+      st.write("Claude: ", response["completion"])
     except:
       st.error("Unable to display response from API")
       st.stop() 
