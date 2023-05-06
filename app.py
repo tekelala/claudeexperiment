@@ -33,7 +33,7 @@ if st.button("Send"):
         # Define the body of the request
         body = {
             "prompt": conversation,
-            "model": "claude-v1",
+            "model": "claude-v1.3",
             "max_tokens_to_sample": 100,
             "stop_sequences": ["\n\nHuman:"]
         }
@@ -44,7 +44,7 @@ if st.button("Send"):
             response.raise_for_status()
 
             result = response.json()
-            st.text("Claude: " + result['completion'])
+            st.write("Claude: " + result['completion'])
 
             # Append Claude's response to the prompts
             st.session_state.prompts.append({
