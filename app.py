@@ -1,70 +1,46 @@
-import streamlit as st
 import requests
-import json
+import streamlit as st
 
-# Define Claude API endpoint
-API_ENDPOINT = "https://api.anthropic.com/v1.3/complete" 
+# Define the API endpoint
+API_ENDPOINT = "https://api.anthropic.com/v1/complete"
 
-# Define function to query API 
-def query(payload): 
-  headers = {
-    "Content-Type": "application/json",
-    "X-API-Key": st.secrets["API_KEY"]
-  }
-  response = requests.post(API_ENDPOINT, headers=headers, data=json.dumps(payload))
-  
-  # Handle response and errors
-  try: 
-    response = response.json()
-  except:
-    st.error("Invalid JSON response from API")
-    st.stop()
-    
-  # Check if "completion" key exists
-  if "completion" not in response:
-    st.error("Invalid JSON response from API")
-    st.stop()
-    
-  return response
+# Define the headers for the API request
+headers = {
+    "x-api-key": st.secrets["API_KEY"],
+    "content-type": "application/json"
+}
 
-# Create page content
-st.title("Chatbot")
-st.write("This is a basic chatbot using the Claude API.")
+def get_response(prompt):
+    # Define the data for the API request
+    data = {
+        "prompt": f"\n\nHuman: {prompt}\n\nAssistant: ",
+        "model": "claude-v1", 
+        "max_tokens_to_sample": 300, 
+        "stop_sequences": ["\n\nHuman:"]
+    }
 
-# Prompt user for query and call API
-query_input = st.text_input("You: ", "How can I help you today?", key = "query_input")  
+    # Send the API request
+    response = requests.post(API_ENDPOINT, headers=headers, json=data)
 
-if query_input:
-  # Format the query for the Claude API
-  prompt = f"\n\nHuman: {query_input}\n\nAssistant:"
-  # Call API and display response
-  response = query({
-    "prompt": prompt,
-    "model": "claude-v1",
-    "max_tokens_to_sample": 100,
-    "stop_sequences": ["\n\nHuman:"]
-  })
-  try: 
-    st.write("Claude: ", response["completion"]) 
-  except:
-    st.error("Unable to display response from API")
-    st.stop()
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Extract the completion from the response
+        completion = response.json()['completion']
+        return completion
+    else:
+        st.error("We encountered an error")
+        return None
 
-# Continuously prompt for new queries  
-while True:    
-  query_input = st.text_input("You: ", "", key = "query_input2") 
-  if query_input:
-    # Format the query for the Claude API
-    prompt = f"\n\nHuman: {query_input}\n\nAssistant:"
-    # Call API and display response
-    response = query({
-      "prompt": prompt,
-      "model": "claude-v1",
-      "max_tokens_to_sample": 100,
-      "stop_sequences": ["\n\nHuman:"]
-    })
-    try: 
-      st.write("Claude: ", response["completion"])
-    except:
-      st.error("Unable to display response from API")
-      st.stop() 
+def app():
+    st.title("Ask Claude")
+    user_input = st.text_input("Enter your question:")
+    if st.button("Ask"):
+        with st.spinner("Please wait..."):
+            response = get_response(user_input)
+            if response:
+                st.text(response)
+            else:
+                st.error("Failed to get a response.")
+
+if __name__ == "__main__":
+    app()
