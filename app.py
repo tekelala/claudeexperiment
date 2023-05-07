@@ -8,6 +8,13 @@ st.title("Chat with Claude")
 if "prompts" not in st.session_state:
     st.session_state.prompts = []
 
+# Display the entire conversation before the text_input box
+for prompt in st.session_state.prompts:
+    if prompt['role'] == 'Human':
+        st.write(f"You: {prompt['content']}")
+    else:  # prompt['role'] == 'Assistant'
+        st.write(f"Claude: {prompt['content']}")
+
 # Fetch user input
 user_input = st.text_input("You: ")
 
@@ -60,10 +67,3 @@ if st.button("Send"):
                 st.error(f"Timeout Error: {errt}")
             except requests.exceptions.RequestException as err:
                 st.error(f"Something went wrong: {err}")
-
-# Display the entire conversation
-for prompt in st.session_state.prompts:
-    if prompt['role'] == 'Human':
-        st.write(f"You: {prompt['content']}")
-    else:  # prompt['role'] == 'Assistant'
-        st.write(f"Claude: {prompt['content']}")
