@@ -16,14 +16,18 @@ if "prompts" not in st.session_state:
 # Placeholder for user input
 user_input = st.empty()
 
-# Container for conversation history
-with st.container():
-    # Display the entire conversation
-    for prompt in st.session_state.prompts:
-        if prompt['role'] == 'Human':
-            st.write(f"You: {prompt['content']}")
-        else:  # prompt['role'] == 'Assistant'
-            st.write(f"Claude: {prompt['content']}")
+def display_chat_history():
+    # Container for conversation history
+    with st.container():
+        # Display the entire conversation
+        for prompt in st.session_state.prompts:
+            if prompt['role'] == 'Human':
+                st.write(f"You: {prompt['content']}")
+            else:  # prompt['role'] == 'Assistant'
+                st.write(f"Claude: {prompt['content']}")
+
+# Display the chat history at the start
+display_chat_history()
 
 # User input and Send button
 user_message = user_input.text_input("You: ")
@@ -67,6 +71,10 @@ if st.button("Send"):
                         "role": "Assistant",
                         "content": result['completion']
                     })
+                    
+                    # Display the updated chat history
+                    display_chat_history()
+
                 except requests.exceptions.HTTPError as errh:
                     st.error(f"HTTP Error: {errh}")
                 except requests.exceptions.ConnectionError as errc:
