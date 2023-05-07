@@ -39,23 +39,31 @@ if st.button("Send"):
         }
 
         # Make a POST request to the Claude API
-        try:
-            response = requests.post(api_url, headers=headers, data=json.dumps(body))
-            response.raise_for_status()
+        with st.spinner('Waiting for Claude...'):
+            try:
+                response = requests.post(api_url, headers=headers, data=json.dumps(body))
+                response.raise_for_status()
 
-            result = response.json()
-            st.write("Claude: " + result['completion'])
+                result = response.json()
+                st.write("Claude: " + result['completion'])
 
-            # Append Claude's response to the prompts
-            st.session_state.prompts.append({
-                "role": "Assistant",
-                "content": result['completion']
-            })
-        except requests.exceptions.HTTPError as errh:
-            st.error(f"HTTP Error: {errh}")
-        except requests.exceptions.ConnectionError as errc:
-            st.error(f"Error Connecting: {errc}")
-        except requests.exceptions.Timeout as errt:
-            st.error(f"Timeout Error: {errt}")
-        except requests.exceptions.RequestException as err:
-            st.error(f"Something went wrong: {err}")
+                # Append Claude's response to the prompts
+                st.session_state.prompts.append({
+                    "role": "Assistant",
+                    "content": result['completion']
+                })
+            except requests.exceptions.HTTPError as errh:
+                st.error(f"HTTP Error: {errh}")
+            except requests.exceptions.ConnectionError as errc:
+                st.error(f"Error Connecting: {errc}")
+            except requests.exceptions.Timeout as errt:
+                st.error(f"Timeout Error: {errt}")
+            except requests.exceptions.RequestException as err:
+                st.error(f"Something went wrong: {err}")
+
+# Display the entire conversation
+for prompt in st.session_state.prompts:
+    if prompt['role'] == 'Human':
+        st.write(f"You: {prompt['content']}")
+    else:  # prompt['role'] == 'Assistant'
+        st.write(f"Claude: {prompt['content']}")
