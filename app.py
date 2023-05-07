@@ -8,62 +8,66 @@ st.title("Chat with Claude")
 if "prompts" not in st.session_state:
     st.session_state.prompts = []
 
-# Display the entire conversation before the text_input box
-for prompt in st.session_state.prompts:
-    if prompt['role'] == 'Human':
-        st.write(f"You: {prompt['content']}")
-    else:  # prompt['role'] == 'Assistant'
-        st.write(f"Claude: {prompt['content']}")
+# Container for conversation history
+with st.container():
+    # Display the entire conversation before the text_input box
+    for prompt in st.session_state.prompts:
+        if prompt['role'] == 'Human':
+            st.write(f"You: {prompt['content']}")
+        else:  # prompt['role'] == 'Assistant'
+            st.write(f"Claude: {prompt['content']}")
 
-# Fetch user input
-user_input = st.text_input("You: ")
+# Container for user input and Send button
+with st.container():
+    # Fetch user input
+    user_input = st.text_input("You: ")
 
-# If there's user input, append it to the prompts
-if user_input:
-    st.session_state.prompts.append({
-        "role": "Human",
-        "content": user_input
-    })
+    # If there's user input, append it to the prompts
+    if user_input:
+        st.session_state.prompts.append({
+            "role": "Human",
+            "content": user_input
+        })
 
-# When the user clicks "Send", make a request to Claude API
-if st.button("Send"):
-    if st.session_state.prompts:
-        api_url = "https://api.anthropic.com/v1/complete"
-        headers = {
-            "Content-Type": "application/json",
-            "X-API-Key": st.secrets["API_KEY"]  # Use the API key from Streamlit's secrets
-        }
+    # When the user clicks "Send", make a request to Claude API
+    if st.button("Send"):
+        if st.session_state.prompts:
+            api_url = "https://api.anthropic.com/v1/complete"
+            headers = {
+                "Content-Type": "application/json",
+                "X-API-Key": st.secrets["API_KEY"]  # Use the API key from Streamlit's secrets
+            }
 
-        # Prepare the prompts for Claude
-        conversation = "\n\n".join([f'{item["role"]}: {item["content"]}' for item in st.session_state.prompts]) + "\n\nAssistant:"
+            # Prepare the prompts for Claude
+            conversation = "\n\n".join([f'{item["role"]}: {item["content"]}' for item in st.session_state.prompts]) + "\n\nAssistant:"
 
-        # Define the body of the request
-        body = {
-            "prompt": conversation,
-            "model": "claude-v1.3",
-            "max_tokens_to_sample": 100,
-            "stop_sequences": ["\n\nHuman:"]
-        }
+            # Define the body of the request
+            body = {
+                "prompt": conversation,
+                "model": "claude-v1.3",
+                "max_tokens_to_sample": 100,
+                "stop_sequences": ["\n\nHuman:"]
+            }
 
-        # Make a POST request to the Claude API
-        with st.spinner('Waiting for Claude...'):
-            try:
-                response = requests.post(api_url, headers=headers, data=json.dumps(body))
-                response.raise_for_status()
+            # Make a POST request to the Claude API
+            with st.spinner('Waiting for Claude...'):
+                try:
+                    response = requests.post(api_url, headers=headers, data=json.dumps(body))
+                    response.raise_for_status()
 
-                result = response.json()
-                st.write("Claude: " + result['completion'])
+                    result = response.json()
+                    st.write("Claude: " + result['completion'])
 
-                # Append Claude's response to the prompts
-                st.session_state.prompts.append({
-                    "role": "Assistant",
-                    "content": result['completion']
-                })
-            except requests.exceptions.HTTPError as errh:
-                st.error(f"HTTP Error: {errh}")
-            except requests.exceptions.ConnectionError as errc:
-                st.error(f"Error Connecting: {errc}")
-            except requests.exceptions.Timeout as errt:
-                st.error(f"Timeout Error: {errt}")
-            except requests.exceptions.RequestException as err:
-                st.error(f"Something went wrong: {err}")
+                    # Append Claude's response to the prompts
+                    st.session_state.prompts.append({
+                        "role": "Assistant",
+                        "content": result['completion']
+                    })
+                except requests.exceptions.HTTPError as errh:
+                    st.error(f"HTTP Error: {errh}")
+                except requests.exceptions.ConnectionError as errc:
+                    st.error(f"Error Connecting: {errc}")
+                except requests.exceptions.Timeout as errt:
+                    st.error(f"Timeout Error: {errt}")
+                except requests.exceptions.RequestException as err:
+                    st.error(f"Something went wrong: {err}")
