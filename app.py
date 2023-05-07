@@ -28,10 +28,9 @@ def send_message(prompts):
 
 # Container for Title and Banner
 with st.container():
-    with st.form("welcome_form"):
-        st.title("Chat with Claude")
-        st.write("Welcome to our chat app!")  # Welcome message
-        # st.image("banner.jpg")  # Display a banner (uncomment this line and replace "banner.jpg" with the path to your banner image)
+    st.title("Chat with Claude")
+    st.write("Welcome to our chat app!")  # Welcome message
+    # st.image("banner.jpg")  # Display a banner (uncomment this line and replace "banner.jpg" with the path to your banner image)
 
 # Define initial prompts
 if "prompts" not in st.session_state:
