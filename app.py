@@ -4,33 +4,38 @@ import json
 
 st.title("Chat with Claude")
 
+# Container for welcome message and banner
+with st.container():
+    st.write("Welcome to our chat app!")  # Welcome message
+    # st.image("banner.jpg")  # Display a banner (uncomment this line and replace "banner.jpg" with the path to your banner image)
+
 # Define initial prompts
 if "prompts" not in st.session_state:
     st.session_state.prompts = []
 
+# Placeholder for user input
+user_input = st.empty()
+
 # Container for conversation history
 with st.container():
-    # Display the entire conversation before the text_input box
+    # Display the entire conversation
     for prompt in st.session_state.prompts:
         if prompt['role'] == 'Human':
             st.write(f"You: {prompt['content']}")
         else:  # prompt['role'] == 'Assistant'
             st.write(f"Claude: {prompt['content']}")
 
-# Container for user input and Send button
-with st.container():
-    # Fetch user input
-    user_input = st.text_input("You: ")
+# User input and Send button
+user_message = user_input.text_input("You: ")
 
-    # If there's user input, append it to the prompts
-    if user_input:
+# When the user clicks "Send", append the input to the prompts and make a request to Claude API
+if st.button("Send"):
+    if user_message:
         st.session_state.prompts.append({
             "role": "Human",
-            "content": user_input
+            "content": user_message
         })
 
-    # When the user clicks "Send", make a request to Claude API
-    if st.button("Send"):
         if st.session_state.prompts:
             api_url = "https://api.anthropic.com/v1/complete"
             headers = {
@@ -56,7 +61,6 @@ with st.container():
                     response.raise_for_status()
 
                     result = response.json()
-                    st.write("Claude: " + result['completion'])
 
                     # Append Claude's response to the prompts
                     st.session_state.prompts.append({
@@ -71,3 +75,6 @@ with st.container():
                     st.error(f"Timeout Error: {errt}")
                 except requests.exceptions.RequestException as err:
                     st.error(f"Something went wrong: {err}")
+
+    # Clear the text input box
+    user_input.text_input("You: ", value="", key="unique")
