@@ -23,7 +23,7 @@ with st.container():
 
 # Container for user input and Send button
 with st.container():
-    user_message = st.text_input("You: ", key="user_input")
+    user_message = st.text_input("You: ", key=f"user_input_{len(st.session_state.prompts)}")
 
     if st.button("Send"):
         if user_message:
@@ -63,9 +63,6 @@ with st.container():
                             "role": "Assistant",
                             "content": result['completion']
                         })
-
-                        # Clear the text input box
-                        st.text_input("You: ", value="", key="user_input")
 
                         # Rerun the script to update the chat
                         st.experimental_rerun()
