@@ -15,8 +15,7 @@ def send_message(prompts):
     # Define the body of the request
     body = {
         "prompt": conversation,
-        "model": "claude-v1.3",
-        "max_tokens_to_sample": 1000,
+        "model": "claude-2.0",
         "stop_sequences": ["\n\nHuman:"]
     }
 
